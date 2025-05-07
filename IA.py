@@ -1,9 +1,9 @@
 import pandas as pd
-import openai
+from openai import OpenAI
 import os
 
 # Configurar sua API Key do OpenAI (recomendo usar variável de ambiente)
-openai.api_key="sk-0ac91b811ec149b48546f44fcf1ba9b5"
+client = OpenAI(api_key="sk-0ac91b811ec149b48546f44fcf1ba9b5", base_url="https://api.deepseek.com")
 
 # URL da sua planilha Google Sheets exportada como CSV
 sheet_id = "1F2juE74EInlz3jE6JSOetSgXNAiWPAm7kppzaPqeE4A"
@@ -41,7 +41,7 @@ Me dê insights relevantes e sugestões de ação com base nesses números.
 """
 
 # Chamar o GPT-4 Turbo para gerar insights
-response = openai.chat.completions.create(
+response = client.chat.completions.create(
     model="deepseek-chat",
     messages=[
         {"role": "system", "content": "Você é um analista financeiro experiente."},

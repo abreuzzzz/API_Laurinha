@@ -1,52 +1,55 @@
 import pandas as pd
+import openai
 import os
-from openai import OpenAI
 
-# Sua chave de API da OpenAI (por segurança, use variável de ambiente em produção)
-openai_api_key = "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"
+# Configurar sua API Key do OpenAI (recomendo usar variável de ambiente)
+openai.api_key = "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"
 
-# Conecta à API da OpenAI
-client = OpenAI(api_key=openai_api_key)
+# URL da sua planilha Google Sheets exportada como CSV
+sheet_id = "1F2juE74EInlz3jE6JSOetSgXNAiWPAm7kppzaPqeE4A"
+sheet_csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
 
-# Link do Google Sheets em formato CSV
-sheet_csv_url = "https://docs.google.com/spreadsheets/d/1F2juE74EInlz3jE6JSOetSgXNAiWPAm7kppzaPqeE4A/export?format=csv"
-
-# Lê os dados
+# Ler a planilha do Google Sheets
 df = pd.read_csv(sheet_csv_url)
 
-# Conversões e limpeza
-df.columns = df.columns.str.strip()
-df['Vencimento'] = pd.to_datetime(df['Vencimento'], errors='coerce')
-df['unpaid'] = df['unpaid'].replace('R$ ', '', regex=True).str.replace('.', '', regex=False).str.replace(',', '.', regex=False).astype(float)
-df['paid'] = df['paid'].replace('R$ ', '', regex=True).str.replace('.', '', regex=False).str.replace(',', '.', regex=False).astype(float)
+# Limpeza dos valores monetários
+def limpar_valores(col):
+    return (
+        col.astype(str)
+           .str.replace(r"[^\d,.-]", "", regex=True)
+           .str.replace(".", "", regex=False)
+           .str.replace(",", ".", regex=False)
+           .pipe(pd.to_numeric, errors="coerce")
+    )
 
-# Resumo numérico
-total_recebido = df[df["Tipo"] == "Recebimento"]["paid"].sum()
-total_pendente = df[df["status"] != "ACQUITTED"]["unpaid"].sum()
-gastos_categoria = df.groupby("Categoria")["paid"].sum().sort_values(ascending=False).head(5)
+df['unpaid'] = limpar_valores(df['unpaid'])
+df['paid'] = limpar_valores(df['paid'])
 
-# Monta prompt
+# Gerar resumo simples
+total_pago = df['paid'].sum()
+total_pendente = df['unpaid'].sum()
+top_categorias = df['Categoria'].value_counts().head(3).to_dict()
+
+# Criar prompt para IA generativa
 prompt = f"""
-Você é um analista financeiro. Abaixo está um resumo dos dados de recebimentos e pagamentos de uma empresa:
-
-- Total recebido: R$ {total_recebido:,.2f}
+Sou um analista financeiro. Com base nesses dados:
+- Total pago: R$ {total_pago:,.2f}
 - Total pendente: R$ {total_pendente:,.2f}
-- Categorias com mais pagamentos:
-{gastos_categoria.to_string()}
+- Top 3 categorias mais frequentes: {top_categorias}
 
-Com base nisso, gere insights em linguagem natural. Aponte padrões, possíveis riscos ou oportunidades de otimização.
+Me dê insights relevantes e sugestões de ação com base nesses números.
 """
 
-# Chamada ao modelo GPT-4
-response = client.chat.completions.create(
-    model="gpt-4",
+# Chamar o GPT-4 Turbo para gerar insights
+response = openai.chat.completions.create(
+    model="gpt-4-turbo",
     messages=[
-        {"role": "system", "content": "Você é um assistente financeiro que ajuda a interpretar dados."},
+        {"role": "system", "content": "Você é um analista financeiro experiente."},
         {"role": "user", "content": prompt}
     ],
     temperature=0.7
 )
 
-# Exibe resposta
-print("🔍 Insights gerados pela IA:\n")
+# Mostrar insights
+print("=== INSIGHTS GERADOS ===")
 print(response.choices[0].message.content)

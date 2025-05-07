@@ -72,6 +72,7 @@ Considere que:
 - 'unpaid' são valores ainda pendentes.
 
 Por favor, me forneça:
+- Para o seu estudo, desconsidere as linhas de pagamento que estão no futuro e como pendente (a partir de hoje).
 - Insights sobre a saúde financeira e tendências.
 - Sinais de alerta (pendências, desequilíbrios).
 - Oportunidades de otimização (redução de custos ou melhoria na previsibilidade).

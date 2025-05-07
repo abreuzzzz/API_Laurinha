@@ -15,7 +15,7 @@ sheets_service = build("sheets", "v4", credentials=credentials)
 
 # ===================== Headers da API Conta Azul =====================
 headers = {
-    'X-Authorization': '65cdd2f3-762f-4fc1-9232-cf49f7967963',
+    'X-Authorization': 'd26f41fc-c283-4685-bd17-12f63bf9919c',
     'Content-Type': 'application/json',
     'User-Agent': 'Mozilla/5.0'
 }
@@ -72,8 +72,8 @@ dados_formatados = [extract_fields(item, colunas_base) for item in all_items]
 df = pd.DataFrame(dados_formatados)
 
 # ===================== Buscar ID da planilha no Google Drive =====================
-folder_id = "12Hgc70RcWkI_HwkDpeBdxOj6CZDzTPo7"
-sheet_name = "Financeiro_contas_a_pagar_Proteon"
+folder_id = "1p5NgTPjx-CtTlA6pElc7hmCSKX-ebd4l"
+sheet_name = "Financeiro_contas_a_pagar_Laurinha"
 
 query = f"name='{sheet_name}' and mimeType='application/vnd.google-apps.spreadsheet' and '{folder_id}' in parents and trashed=false"
 results = drive_service.files().list(q=query, spaces='drive', fields="files(id, name)").execute()

@@ -18,8 +18,8 @@ drive_service = build("drive", "v3", credentials=credentials)
 sheets_service = build("sheets", "v4", credentials=credentials)
 
 # ===================== Buscar arquivos no Drive =====================
-folder_id = "12Hgc70RcWkI_HwkDpeBdxOj6CZDzTPo7"
-sheet_input_name = "Financeiro_contas_a_pagar_Proteon"
+folder_id = "1p5NgTPjx-CtTlA6pElc7hmCSKX-ebd4l"
+sheet_input_name = "Financeiro_contas_a_pagar_Laurinha"
 sheet_output_name = "Detalhe_centro_pagamento"
 
 def get_file_id(name):
@@ -48,7 +48,7 @@ print(f"📥 Planilha carregada com {len(ids)} IDs únicos.")
 
 # ===================== Configuração da API Conta Azul =====================
 headers = {
-    'X-Authorization': '65cdd2f3-762f-4fc1-9232-cf49f7967963',
+    'X-Authorization': 'd26f41fc-c283-4685-bd17-12f63bf9919c',
     'User-Agent': 'Mozilla/5.0'
 }
 

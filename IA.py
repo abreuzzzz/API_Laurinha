@@ -1,70 +1,52 @@
 import pandas as pd
-import requests
-import openai
-import re
+import os
+from openai import OpenAI
 
-# === CONFIGURAÇÃO ===
+# Sua chave de API da OpenAI (por segurança, use variável de ambiente em produção)
+openai_api_key = "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"
+
+# Conecta à API da OpenAI
+client = OpenAI(api_key=openai_api_key)
+
+# Link do Google Sheets em formato CSV
 sheet_csv_url = "https://docs.google.com/spreadsheets/d/1F2juE74EInlz3jE6JSOetSgXNAiWPAm7kppzaPqeE4A/export?format=csv"
-openai.api_key = "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"  # Substitua pela sua chave
 
-# === 1. Ler e limpar os dados ===
+# Lê os dados
 df = pd.read_csv(sheet_csv_url)
 
-# Remove "R$" e converte colunas para float
-def parse_money(value):
-    if isinstance(value, str):
-        value = value.replace("R$", "").replace(".", "").replace(",", ".").strip()
-    try:
-        return float(value)
-    except:
-        return 0.0
+# Conversões e limpeza
+df.columns = df.columns.str.strip()
+df['Vencimento'] = pd.to_datetime(df['Vencimento'], errors='coerce')
+df['unpaid'] = df['unpaid'].replace('R$ ', '', regex=True).str.replace('.', '', regex=False).str.replace(',', '.', regex=False).astype(float)
+df['paid'] = df['paid'].replace('R$ ', '', regex=True).str.replace('.', '', regex=False).str.replace(',', '.', regex=False).astype(float)
 
-df["unpaid"] = df["unpaid"].apply(parse_money)
-df["paid"] = df["paid"].apply(parse_money)
+# Resumo numérico
+total_recebido = df[df["Tipo"] == "Recebimento"]["paid"].sum()
+total_pendente = df[df["status"] != "ACQUITTED"]["unpaid"].sum()
+gastos_categoria = df.groupby("Categoria")["paid"].sum().sort_values(ascending=False).head(5)
 
-# Filtra colunas úteis para análise
-df_filtered = df[["Descrição", "Vencimento", "Tipo", "unpaid", "paid", "status", "Categoria"]].copy()
-
-# Limita para 100 linhas (caso o prompt fique grande)
-df_sample = df_filtered.head(10000)
-
-# === 2. Preparar o prompt para a IA ===
-data_text = df_sample.to_csv(index=False)
-
+# Monta prompt
 prompt = f"""
-Você é um analista financeiro.
+Você é um analista financeiro. Abaixo está um resumo dos dados de recebimentos e pagamentos de uma empresa:
 
-Abaixo estão registros de pagamentos e recebimentos de uma empresa. Cada linha contém:
-- Descrição da transação
-- Data de vencimento
-- Tipo (Pagamento ou Recebimento)
-- Valor ainda não pago (unpaid)
-- Valor já pago (paid)
-- Status (ACQUITTED = pago, OVERDUE = vencido e não pago, PENDING = ainda não pago)
-- Categoria (ex: tarifas, serviços, vendas etc.)
+- Total recebido: R$ {total_recebido:,.2f}
+- Total pendente: R$ {total_pendente:,.2f}
+- Categorias com mais pagamentos:
+{gastos_categoria.to_string()}
 
-Dados (formato CSV):
-
-{data_text}
-
-Com base nesses dados, forneça insights úteis de negócios, como:
-- Categorias com maiores gastos ou receitas no mês anterior e no mês atual
-- Tendência de inadimplência (status OVERDUE ou PENDING)
-- Valor total ainda a receber ou pagar
-- Análise de fluxo de caixa por tipo e categoria
-- Recomendações práticas para gestão financeira
-
-Seja direto, claro e objetivo.
+Com base nisso, gere insights em linguagem natural. Aponte padrões, possíveis riscos ou oportunidades de otimização.
 """
 
-# === 3. Chamar a OpenAI ===
-response = openai.ChatCompletion.create(
+# Chamada ao modelo GPT-4
+response = client.chat.completions.create(
     model="gpt-4",
-    messages=[{"role": "user", "content": prompt}],
-    temperature=0.6,
-    max_tokens=700
+    messages=[
+        {"role": "system", "content": "Você é um assistente financeiro que ajuda a interpretar dados."},
+        {"role": "user", "content": prompt}
+    ],
+    temperature=0.7
 )
 
-# === 4. Exibir insights no Power BI ===
-insights = response['choices'][0]['message']['content']
-print(insights)
+# Exibe resposta
+print("🔍 Insights gerados pela IA:\n")
+print(response.choices[0].message.content)

@@ -3,7 +3,7 @@ import openai
 import os
 
 # Configurar sua API Key do OpenAI (recomendo usar variável de ambiente)
-client = OpenAI(api_key="sk-0ac91b811ec149b48546f44fcf1ba9b5", base_url="https://api.deepseek.com")
+openai.api_key="sk-0ac91b811ec149b48546f44fcf1ba9b5"
 
 # URL da sua planilha Google Sheets exportada como CSV
 sheet_id = "1F2juE74EInlz3jE6JSOetSgXNAiWPAm7kppzaPqeE4A"

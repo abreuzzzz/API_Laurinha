@@ -41,7 +41,9 @@ result = sheets_service.spreadsheets().values().get(
 ).execute()
 
 values = result.get('values', [])
-df_base = pd.DataFrame(values[1:], columns=values[0])
+header = values[0]
+data = [row + [""] * (len(header) - len(row)) for row in values[1:] if len(row) > 0]
+df_base = pd.DataFrame(data, columns=header)
 ids = df_base["financialEvent.id"].dropna().unique()
 
 print(f"📥 Planilha carregada com {len(ids)} IDs únicos.")

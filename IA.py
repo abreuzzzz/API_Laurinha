@@ -4,7 +4,7 @@ import openai
 import re
 
 # === CONFIGURAÇÃO ===
-sheet_csv_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQPWhsfQw8myiwFMtIuMRu8JHqx0gXaaJ7bhhIUGpMdNIGJcRtnGMPvDLBfVi29vEBW80r-Yo4BvQvK/pub?output=csv"
+sheet_csv_url = "https://docs.google.com/spreadsheets/d/1F2juE74EInlz3jE6JSOetSgXNAiWPAm7kppzaPqeE4A/export?format=csv"
 openai.api_key = "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"  # Substitua pela sua chave
 
 # === 1. Ler e limpar os dados ===

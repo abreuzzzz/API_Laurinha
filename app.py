@@ -28,10 +28,6 @@ df['unpaid'] = limpar_valores(df['unpaid'])
 df['paid'] = limpar_valores(df['paid'])
 df['Vencimento'] = pd.to_datetime(df['Vencimento'], errors='coerce')
 
-# Filtro: excluir pagamentos futuros que ainda não foram pagos
-hoje = pd.Timestamp.today()
-df = df[~((df['Tipo'] == 'Pagamento') & (df['Vencimento'] > hoje) & (df['unpaid'] > 0))]
-
 # Interface Streamlit
 st.set_page_config(page_title="Consultor Financeiro IA", layout="centered")
 st.title("Pergunte sobre suas finanças 💰📊")

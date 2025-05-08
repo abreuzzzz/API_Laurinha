@@ -24,13 +24,18 @@ def limpar_valores(col):
            .pipe(pd.to_numeric, errors="coerce")
     )
 
-df['unpaid'] = limpar_valores(df['unpaid'])
-df['paid'] = limpar_valores(df['paid'])
+df['Despesa não realizada'] = limpar_valores(df['Despesa não realizada'])
+df['Despesa realizada'] = limpar_valores(df['Despesa realizada'])
+df['Receia não realizada'] = limpar_valores(df['Receia não realizada'])
+df['Receita realizada'] = limpar_valores(df['Receita realizada'])
+df['Categoria'] = limpar_valores(df['Categoria'])
+df['Descrição'] = limpar_valores(df['Descrição'])
+df['Tipo'] = limpar_valores(df['Tipo'])
 df['Vencimento'] = pd.to_datetime(df['Vencimento'], errors='coerce')
 
 # Interface Streamlit
-st.set_page_config(page_title="Consultor Financeiro IA", layout="centered")
-st.title("Pergunte sobre suas finanças 💰📊")
+st.set_page_config(page_title="Pergunte à Soc.ia", layout="centered")
+st.title("Pergunte à Soc.ia")
 
 pergunta = st.text_area("Faça sua pergunta sobre os dados:", height=100)
 

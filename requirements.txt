@@ -7,3 +7,4 @@ pydrive2
 openai
 streamlit
 langchain
+langchain-experimental

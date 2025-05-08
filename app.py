@@ -1,17 +1,19 @@
 import pandas as pd
 import streamlit as st
+from langchain.agents import create_pandas_dataframe_agent
+from langchain.chat_models import ChatOpenAI
 from openai import OpenAI
 from datetime import datetime
-import re
 
-client = OpenAI(api_key="sua-chave-aqui", base_url="https://api.deepseek.com")
+# Chave da API (OpenAI ou DeepSeek)
+openai_api_key = "sk-0ac91b811ec149b48546f44fcf1ba9b5"
 
-# Carregar os dados
+# Carregar planilha do Google Sheets
 sheet_id = "1F2juE74EInlz3jE6JSOetSgXNAiWPAm7kppzaPqeE4A"
-sheet_csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
-df = pd.read_csv(sheet_csv_url)
+csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
+df = pd.read_csv(csv_url)
 
-# Limpar colunas
+# Limpeza dos valores
 def limpar_valores(col):
     return (
         col.astype(str)
@@ -25,82 +27,36 @@ df['unpaid'] = limpar_valores(df['unpaid'])
 df['paid'] = limpar_valores(df['paid'])
 df['Vencimento'] = pd.to_datetime(df['Vencimento'], errors='coerce')
 
-# Filtros fixos
+# Filtro: excluir pagamentos futuros que ainda não foram pagos
 hoje = pd.Timestamp.today()
-df_filtrado = df[~((df['Tipo'] == 'Pagamento') & (df['Vencimento'] > hoje) & (df['unpaid'] > 0))]
+df = df[~((df['Tipo'] == 'Pagamento') & (df['Vencimento'] > hoje) & (df['unpaid'] > 0))]
 
-# Interface
-st.set_page_config(page_title="IA Financeira", layout="centered")
-st.title("Pergunte à IA sobre seus dados financeiros")
+# Interface Streamlit
+st.set_page_config(page_title="Consultor Financeiro IA", layout="centered")
+st.title("Pergunte sobre suas finanças 💰📊")
 
-user_question = st.text_area("Faça sua pergunta:")
+pergunta = st.text_area("Faça sua pergunta sobre os dados:", height=100)
 
-# Função para extrair mês ou categoria da pergunta
-def extrair_filtros(texto):
-    filtros = {}
-    
-    # Mês (ex: março, abril etc.)
-    match_mes = re.search(r"(janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)", texto, re.IGNORECASE)
-    if match_mes:
-        nome_mes = match_mes.group(1).lower()
-        mes_map = {'janeiro': 1, 'fevereiro': 2, 'março': 3, 'abril': 4, 'maio': 5, 'junho': 6,
-                   'julho': 7, 'agosto': 8, 'setembro': 9, 'outubro': 10, 'novembro': 11, 'dezembro': 12}
-        filtros['mes'] = mes_map[nome_mes]
-
-    # Categoria (ex: Transporte, Alimentação etc.)
-    categorias = df_filtrado['Categoria'].dropna().unique().tolist()
-    for cat in categorias:
-        if isinstance(cat, str) and cat.lower() in texto.lower():
-            filtros['categoria'] = cat
-            break
-
-    return filtros
-
-# Processar pergunta
-if st.button("Perguntar"):
-    if user_question.strip() == "":
-        st.warning("Digite uma pergunta primeiro.")
+# Botão
+if st.button("Responder"):
+    if not pergunta.strip():
+        st.warning("Digite uma pergunta.")
     else:
-        filtros = extrair_filtros(user_question)
-        df_contexto = df_filtrado.copy()
-
-        if 'mes' in filtros:
-            df_contexto = df_contexto[df_contexto['Vencimento'].dt.month == filtros['mes']]
-        if 'categoria' in filtros:
-            df_contexto = df_contexto[df_contexto['Categoria'] == filtros['categoria']]
-
-        # Reduzir volume para evitar estouro de tokens
-        df_resumo = df_contexto[['Descrição', 'Vencimento', 'Tipo', 'paid', 'unpaid', 'Categoria', 'Status']].tail(50)
-        json_data = df_resumo.to_dict(orient='records')
-
-        prompt = f"""
-Você é um analista financeiro. O usuário fez a seguinte pergunta: {user_question}
-
-Aqui estão transações relevantes extraídas da base de dados (máx. 50):
-
-{json_data}
-
-Cada linha tem:
-- descrição (nome do item)
-- vencimento (data)
-- tipo (Recebimento ou Pagamento)
-- paid: valor realizado
-- unpaid: valor pendente
-- categoria: tipo de gasto ou receita
-- status: realizado ou vencido
-
-Responda de forma clara e objetiva com base nessas transações.
-        """
-
-        response = client.chat.completions.create(
-            model="deepseek-chat",
-            messages=[
-                {"role": "system", "content": "Você é um analista financeiro experiente."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=1.0
+        # Criar agente LangChain com Pandas
+        agent = create_pandas_dataframe_agent(
+            ChatOpenAI(
+                model_name="deepseek-chat",
+                temperature=0,
+                openai_api_key=openai_api_key
+            ),
+            df,
+            verbose=True
         )
 
-        resposta = response.choices[0].message.content
-        st.markdown("### Resposta da IA")
-        st.write(resposta)
+        with st.spinner("Pensando..."):
+            try:
+                resposta = agent.run(pergunta)
+                st.success("Resposta:")
+                st.write(resposta)
+            except Exception as e:
+                st.error(f"Erro ao responder: {e}")

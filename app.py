@@ -28,9 +28,6 @@ df['Despesa não realizada'] = limpar_valores(df['Despesa não realizada'])
 df['Despesa realizada'] = limpar_valores(df['Despesa realizada'])
 df['Receia não realizada'] = limpar_valores(df['Receia não realizada'])
 df['Receita realizada'] = limpar_valores(df['Receita realizada'])
-df['Categoria'] = limpar_valores(df['Categoria'])
-df['Descrição'] = limpar_valores(df['Descrição'])
-df['Tipo'] = limpar_valores(df['Tipo'])
 df['Vencimento'] = pd.to_datetime(df['Vencimento'], errors='coerce')
 
 # Interface Streamlit

@@ -2,16 +2,16 @@ import pandas as pd
 import streamlit as st
 from openai import OpenAI
 from datetime import datetime
+import re
 
-# Inicialização da API
-client = OpenAI(api_key="sk-0ac91b811ec149b48546f44fcf1ba9b5", base_url="https://api.deepseek.com")
+client = OpenAI(api_key="sua-chave-aqui", base_url="https://api.deepseek.com")
 
-# Carregar dados da planilha
+# Carregar os dados
 sheet_id = "1F2juE74EInlz3jE6JSOetSgXNAiWPAm7kppzaPqeE4A"
 sheet_csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
 df = pd.read_csv(sheet_csv_url)
 
-# Limpar valores monetários
+# Limpar colunas
 def limpar_valores(col):
     return (
         col.astype(str)
@@ -23,59 +23,74 @@ def limpar_valores(col):
 
 df['unpaid'] = limpar_valores(df['unpaid'])
 df['paid'] = limpar_valores(df['paid'])
-df['Vencimento'] = pd.to_datetime(df['Vencimento'])
+df['Vencimento'] = pd.to_datetime(df['Vencimento'], errors='coerce')
 
-# Cálculos auxiliares
+# Filtros fixos
 hoje = pd.Timestamp.today()
 df_filtrado = df[~((df['Tipo'] == 'Pagamento') & (df['Vencimento'] > hoje) & (df['unpaid'] > 0))]
 
-df_filtrado['AnoMes'] = df_filtrado['Vencimento'].dt.to_period('M')
-df_filtrado['Trimestre'] = df_filtrado['Vencimento'].dt.to_period('Q')
+# Interface
+st.set_page_config(page_title="IA Financeira", layout="centered")
+st.title("Pergunte à IA sobre seus dados financeiros")
 
-resumo_trimestral = df_filtrado.groupby(['Trimestre', 'Tipo'])[['paid', 'unpaid']].sum().unstack(fill_value=0)
-resumo_mensal_categoria = df_filtrado.groupby(['AnoMes', 'Categoria'])['paid'].sum().unstack(fill_value=0)
-variacao_mensal_pct = resumo_mensal_categoria.pct_change().fillna(0)
-categorias_com_alta = (variacao_mensal_pct > 0.3).apply(lambda row: row[row > 0.3].to_dict(), axis=1).to_dict()
+user_question = st.text_area("Faça sua pergunta:")
 
-total_recebido = df_filtrado[df_filtrado['Tipo'] == 'Recebimento']['paid'].sum()
-total_pago = df_filtrado[df_filtrado['Tipo'] == 'Pagamento']['paid'].sum()
-total_pendente = df_filtrado['unpaid'].sum()
-saldo_liquido = total_recebido - total_pago
-top_categorias = df_filtrado['Categoria'].value_counts().head(3).to_dict()
-resumo_mensal_recebimentos = df_filtrado[df_filtrado['Tipo'] == 'Recebimento'].groupby(df_filtrado['Vencimento'].dt.to_period('M'))['paid'].sum()
-resumo_mensal_pagamentos = df_filtrado[df_filtrado['Tipo'] == 'Pagamento'].groupby(df_filtrado['Vencimento'].dt.to_period('M'))['paid'].sum()
+# Função para extrair mês ou categoria da pergunta
+def extrair_filtros(texto):
+    filtros = {}
+    
+    # Mês (ex: março, abril etc.)
+    match_mes = re.search(r"(janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)", texto, re.IGNORECASE)
+    if match_mes:
+        nome_mes = match_mes.group(1).lower()
+        mes_map = {'janeiro': 1, 'fevereiro': 2, 'março': 3, 'abril': 4, 'maio': 5, 'junho': 6,
+                   'julho': 7, 'agosto': 8, 'setembro': 9, 'outubro': 10, 'novembro': 11, 'dezembro': 12}
+        filtros['mes'] = mes_map[nome_mes]
 
-# Converta o DataFrame filtrado em JSON
-df_json = df_filtrado.to_dict(orient="records")
+    # Categoria (ex: Transporte, Alimentação etc.)
+    categorias = df_filtrado['Categoria'].dropna().unique().tolist()
+    for cat in categorias:
+        if isinstance(cat, str) and cat.lower() in texto.lower():
+            filtros['categoria'] = cat
+            break
 
-# Interface Streamlit
-st.set_page_config(page_title="Pergunte à IA", layout="centered")
-st.title("Pergunte à Soc.ia")
+    return filtros
 
-user_question = st.text_area("Escreva sua pergunta sobre os dados financeiros:")
-
+# Processar pergunta
 if st.button("Perguntar"):
     if user_question.strip() == "":
-        st.warning("Por favor, escreva uma pergunta.")
+        st.warning("Digite uma pergunta primeiro.")
     else:
+        filtros = extrair_filtros(user_question)
+        df_contexto = df_filtrado.copy()
+
+        if 'mes' in filtros:
+            df_contexto = df_contexto[df_contexto['Vencimento'].dt.month == filtros['mes']]
+        if 'categoria' in filtros:
+            df_contexto = df_contexto[df_contexto['Categoria'] == filtros['categoria']]
+
+        # Reduzir volume para evitar estouro de tokens
+        df_resumo = df_contexto[['Descrição', 'Vencimento', 'Tipo', 'paid', 'unpaid', 'Categoria', 'Status']].tail(50)
+        json_data = df_resumo.to_dict(orient='records')
+
         prompt = f"""
-Você é um analista financeiro sênior. O usuário fez a seguinte pergunta: {user_question}
+Você é um analista financeiro. O usuário fez a seguinte pergunta: {user_question}
 
-Aqui estão os dados financeiros completos no formato JSON (cada linha representa uma transação):
+Aqui estão transações relevantes extraídas da base de dados (máx. 50):
 
-{df_json}
+{json_data}
 
-As colunas significam:
-- descrição: título do item
-- Vencimento: data no formato yyyy-mm-dd
-- Tipo: Recebimento (entrada, dinheiro recebido) ou Pagamento (saída, pagamento)
-- unpaid: valor pendente
+Cada linha tem:
+- descrição (nome do item)
+- vencimento (data)
+- tipo (Recebimento ou Pagamento)
 - paid: valor realizado
-- Status: se foi realizado ou vencido
-- Categoria: classificação da transação
+- unpaid: valor pendente
+- categoria: tipo de gasto ou receita
+- status: realizado ou vencido
 
-Com base nesses dados, responda de forma clara e objetiva à pergunta.
-"""
+Responda de forma clara e objetiva com base nessas transações.
+        """
 
         response = client.chat.completions.create(
             model="deepseek-chat",

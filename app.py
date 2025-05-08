@@ -35,7 +35,9 @@ prefixo_customizado = """Você é um assistente financeiro especializado em anal
 Neste DataFrame, os valores de despesa estão nas colunas que começam com 'Despesa' e tem diferença entre realizado e não realizado.
 Os valores de Receita estão nas colunas que começam com 'Receita' e tem diferença entre realizado e não realizado.
 Responda com base apenas nas colunas de Despesa quando a pergunta for sobre gastos ou despesas ou saidas. 
-Responda com base apenas nas colunas de Receita quando a pergunta for sobre entrada ou receita ou recebimento."""
+Responda com base apenas nas colunas de Receita quando a pergunta for sobre entrada ou receita ou recebimento.
+Quando te perguntarem por exemplo Qual o total de despesas realizadas por mês em 2025? você deve somar apenas a coluna Despesa realizada por mês.
+Quando te perguntarem qual o saldo você deve subtrair o total de receitas pelo total de despesas"""
 
 # Interface Streamlit
 st.set_page_config(page_title="Pergunte à Soc.ia", layout="centered")

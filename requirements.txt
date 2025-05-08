@@ -6,3 +6,4 @@ sqlalchemy
 pydrive2
 openai
 streamlit
+langchain

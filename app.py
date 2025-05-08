@@ -3,7 +3,7 @@ import streamlit as st
 from openai import OpenAI
 
 # Inicialização da API (substitua por sua chave real)
-client = OpenAI(api_key="xxxxx", base_url="https://api.deepseek.com")
+client = OpenAI(api_key="sk-0ac91b811ec149b48546f44fcf1ba9b5", base_url="https://api.deepseek.com")
 
 # Carregar dados da planilha Google
 sheet_id = "xxx"

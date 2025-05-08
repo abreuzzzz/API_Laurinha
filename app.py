@@ -6,7 +6,7 @@ from openai import OpenAI
 client = OpenAI(api_key="sk-0ac91b811ec149b48546f44fcf1ba9b5", base_url="https://api.deepseek.com")
 
 # Carregar dados da planilha Google
-sheet_id = "xxx"
+sheet_id = "1F2juE74EInlz3jE6JSOetSgXNAiWPAm7kppzaPqeE4A"
 sheet_csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
 df = pd.read_csv(sheet_csv_url)
 

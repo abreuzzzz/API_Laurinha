@@ -30,6 +30,12 @@ df['Receia não realizada'] = limpar_valores(df['Receia não realizada'])
 df['Receita realizada'] = limpar_valores(df['Receita realizada'])
 df['Vencimento'] = pd.to_datetime(df['Vencimento'], errors='coerce')
 
+prefixo_customizado = """Você é um assistente financeiro especializado em analisar dados. 
+Neste DataFrame, os valores de despesa estão nas colunas que começam com 'Despesa' e tem diferença entre realizado e não realizado.
+Os valores de Receita estão nas colunas que começam com 'Receita' e tem diferença entre realizado e não realizado.
+Responda com base apenas nas colunas de Despesa quando a pergunta for sobre gastos ou despesas ou saidas. 
+Responda com base apenas nas colunas de Receita quando a pergunta for sobre entrada ou receita ou recebimento."""
+
 # Interface Streamlit
 st.set_page_config(page_title="Pergunte à Soc.ia", layout="centered")
 st.title("Pergunte à Soc.ia")
@@ -50,7 +56,9 @@ if st.button("Responder"):
                 base_url=deepseek_base_url,
             ),
             df,
-            verbose=True,
+            agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+            prefix=prefixo_customizado,
+            handle_parsing_errors=True,
             allow_dangerous_code=True
         )
 

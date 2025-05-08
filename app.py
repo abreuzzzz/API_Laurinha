@@ -6,7 +6,8 @@ from openai import OpenAI
 from datetime import datetime
 
 # Chave da API (OpenAI ou DeepSeek)
-openai_api_key = "sk-0ac91b811ec149b48546f44fcf1ba9b5"
+deepseek_api_key = "sk-0ac91b811ec149b48546f44fcf1ba9b5"  # substitua pela sua chave da DeepSeek
+deepseek_base_url = "https://api.deepseek.com"  # URL base correta
 
 # Carregar planilha do Google Sheets
 sheet_id = "1F2juE74EInlz3jE6JSOetSgXNAiWPAm7kppzaPqeE4A"
@@ -47,7 +48,8 @@ if st.button("Responder"):
             ChatOpenAI(
                 model_name="deepseek-chat",
                 temperature=0,
-                openai_api_key=openai_api_key
+                openai_api_key=deepseek_api_key,
+                base_url=deepseek_base_url,
             ),
             df,
             verbose=True,

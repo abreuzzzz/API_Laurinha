@@ -47,7 +47,8 @@ if st.button("Responder"):
             ChatOpenAI(
                 model_name="deepseek-chat",
                 temperature=0,
-                openai_api_key=openai_api_key
+                openai_api_key=openai_api_key,
+                allow_dangerous_code=True
             ),
             df,
             verbose=True

@@ -45,6 +45,9 @@ top_categorias = df_filtrado['Categoria'].value_counts().head(3).to_dict()
 resumo_mensal_recebimentos = df_filtrado[df_filtrado['Tipo'] == 'Recebimento'].groupby(df_filtrado['Vencimento'].dt.to_period('M'))['paid'].sum()
 resumo_mensal_pagamentos = df_filtrado[df_filtrado['Tipo'] == 'Pagamento'].groupby(df_filtrado['Vencimento'].dt.to_period('M'))['paid'].sum()
 
+# Converta o DataFrame filtrado em JSON
+df_json = df_filtrado.to_dict(orient="records")
+
 # Interface Streamlit
 st.set_page_config(page_title="Pergunte à IA", layout="centered")
 st.title("Pergunte à Soc.ia")
@@ -58,36 +61,21 @@ if st.button("Perguntar"):
         prompt = f"""
 Você é um analista financeiro sênior. O usuário fez a seguinte pergunta: {user_question}
 
-Aqui estão dados financeiros agregados:
-1. Visão geral:
-- Total recebido: R$ {total_recebido:,.2f}
-- Total pago: R$ {total_pago:,.2f}
-- Total pendente: R$ {total_pendente:,.2f}
-- Saldo líquido: R$ {saldo_liquido:,.2f}
+Aqui estão os dados financeiros completos no formato JSON (cada linha representa uma transação):
 
-2. Top 3 categorias mais frequentes: {top_categorias}
+{df_json}
 
-3. Resumo trimestral (valores pagos e pendentes por tipo de transação):
-{resumo_trimestral.to_string()}
+As colunas significam:
+- descrição: título do item
+- Vencimento: data no formato yyyy-mm-dd
+- Tipo: Recebimento (entrada, dinheiro recebido) ou Pagamento (saída, pagamento)
+- unpaid: valor pendente
+- paid: valor realizado
+- Status: se foi realizado ou vencido
+- Categoria: classificação da transação
 
-4. Categorias com aumentos mensais significativos (>30%):
-{categorias_com_alta}
-
-Considere:
-- Transações com status "ACQUITTED" já foram quitadas.
-- Tipo = 'Recebimento' (significa receita, entrada, receita) ou 'Pagamento'(significa despesa, saida, pagamento).
-- paid = valores realizados.
-- unpaid = valores pendentes.
-
-5. Recebimentos mensais:
-{resumo_mensal_recebimentos.to_string()}
-
-5. Pagamentos mensais:
-{resumo_mensal_pagamentos.to_string()}
-
-
-Responda de forma clara e objetiva.
-        """
+Com base nesses dados, responda de forma clara e objetiva à pergunta.
+"""
 
         response = client.chat.completions.create(
             model="deepseek-chat",

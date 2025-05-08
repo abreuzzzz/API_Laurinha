@@ -42,10 +42,12 @@ total_pago = df_filtrado[df_filtrado['Tipo'] == 'Pagamento']['paid'].sum()
 total_pendente = df_filtrado['unpaid'].sum()
 saldo_liquido = total_recebido - total_pago
 top_categorias = df_filtrado['Categoria'].value_counts().head(3).to_dict()
+resumo_mensal_recebimentos = df_filtrado[df_filtrado['Tipo'] == 'Recebimento'].groupby(df_filtrado['Vencimento'].dt.to_period('M'))['paid'].sum()
+resumo_mensal_pagamentos = df_filtrado[df_filtrado['Tipo'] == 'Pagamento'].groupby(df_filtrado['Vencimento'].dt.to_period('M'))['paid'].sum()
 
 # Interface Streamlit
 st.set_page_config(page_title="Pergunte à IA", layout="centered")
-st.title("Pergunte à IA Financeira")
+st.title("Pergunte à Soc.ia")
 
 user_question = st.text_area("Escreva sua pergunta sobre os dados financeiros:")
 
@@ -73,9 +75,16 @@ Aqui estão dados financeiros agregados:
 
 Considere:
 - Transações com status "ACQUITTED" já foram quitadas.
-- Tipo = 'Recebimento' ou 'Pagamento'.
-- paid = valores pagos ou recebidos.
+- Tipo = 'Recebimento' (significa receita, entrada, receita) ou 'Pagamento'(significa despesa, saida, pagamento).
+- paid = valores realizados.
 - unpaid = valores pendentes.
+
+5. Recebimentos mensais:
+{resumo_mensal_recebimentos.to_string()}
+
+5. Pagamentos mensais:
+{resumo_mensal_pagamentos.to_string()}
+
 
 Responda de forma clara e objetiva.
         """

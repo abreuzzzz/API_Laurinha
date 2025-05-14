@@ -9,3 +9,5 @@ streamlit
 langchain
 langchain-experimental
 tabulate
+gspread
+gspread-dataframe

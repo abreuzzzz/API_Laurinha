@@ -64,7 +64,7 @@ top_categorias = df['categoriesRatio.category'].value_counts().head(3).to_dict()
 
 # Filtrar transações realizadas
 hoje = pd.to_datetime(datetime.today().date())
-df_realizadas = df[(df['lastAcquittanceDate'] <= hoje)
+df_realizadas = df[df['lastAcquittanceDate'] <= hoje].copy()
 
 df_realizadas['valor_ajustado'] = df_realizadas.apply(
     lambda row: abs(row['categoriesRatio.value']) if row['tipo'].lower() == 'Receita' else -abs(row['categoriesRatio.value']),

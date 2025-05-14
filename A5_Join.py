@@ -4,6 +4,7 @@ import gspread
 import pandas as pd
 from gspread_dataframe import get_as_dataframe, set_with_dataframe
 from oauth2client.service_account import ServiceAccountCredentials
+from datetime import datetime
 
 # 🔐 Lê o segredo e salva como credentials.json
 gdrive_credentials = os.getenv("GDRIVE_SERVICE_ACCOUNT")
@@ -68,6 +69,18 @@ df_enriquecido = df_enriquecido.merge(
 
 # Atualiza as linhas originais com os detalhes de recebimento
 df_merge.update(df_enriquecido)
+
+# Remove linhas com competenceDate maior que hoje
+if 'financialEvent.competenceDate' in df_merge.columns:
+    df_merge['financialEvent.competenceDate'] = pd.to_datetime(df_merge['financialEvent.competenceDate'], errors='coerce')
+    df_merge = df_merge[df_merge['financialEvent.competenceDate'] <= datetime.today()]
+
+# Corrige valores da coluna categoriesRatio.value com base na condição
+if 'categoriesRatio.value' in df_merge.columns and 'paid' in df_merge.columns:
+    df_merge['categoriesRatio.value'] = df_merge.apply(
+        lambda row: row['paid'] if pd.notna(row['categoriesRatio.value']) and pd.notna(row['paid']) and row['categoriesRatio.value'] > row['paid'] else row['categoriesRatio.value'],
+        axis=1
+    )
 
 # 📄 Abrir a planilha de saída
 planilha_saida = client.open_by_key(planilhas_ids["Financeiro_Completo_Laurinha"])

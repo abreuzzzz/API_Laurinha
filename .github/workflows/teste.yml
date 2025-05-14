@@ -1,6 +1,9 @@
 name: Atualizar Conta Azul
 
-
+on:
+  schedule:
+    - cron: '0 3 * * *'  # todos os dias às 03:00 UTC
+  workflow_dispatch:
 
 jobs:
   run-script:

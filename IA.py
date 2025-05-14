@@ -29,6 +29,7 @@ df['categoriesRatio.value'] = limpar_valores(df['categoriesRatio.value'])
 
 # Converter coluna de data
 df['financialEvent.competenceDate'] = pd.to_datetime(df['financialEvent.competenceDate'])
+df['lastAcquittanceDate'] = pd.to_datetime(df['lastAcquittanceDate'], errors='coerce')
 
 # Criar colunas auxiliares
 df['AnoMes'] = df['financialEvent.competenceDate'].dt.to_period('M')

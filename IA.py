@@ -85,7 +85,7 @@ rentabilidade['margem_lucro'] = rentabilidade['lucro'] / rentabilidade['paid_rec
 
 # Pendências e vencidos
 df_pendentes = df[(df['unpaid'] > 0) & (df['financialEvent.competenceDate'] <= hoje)]
-pendentes_por_tipo = df_pendentes.groupby('Tipo')['unpaid'].sum().to_dict()
+pendentes_por_tipo = df_pendentes.groupby('tipo')['unpaid'].sum().to_dict()
 
 # Inadimplência
 total_vencido = df_pendentes['unpaid'].sum()
@@ -122,7 +122,7 @@ Você é um analista financeiro sênior. Recebi um extrato financeiro com as seg
 
 Considere que:
 - Transações com status "ACQUITTED" já foram quitadas.
-- O campo 'Tipo' indica se é uma entrada ("Receita") ou saída ("Despesa").
+- O campo 'tipo' indica se é uma entrada ("Receita") ou saída ("Despesa").
 - 'paid' são os valores já pagos ou recebidos.
 - 'unpaid' são valores ainda pendentes.
 

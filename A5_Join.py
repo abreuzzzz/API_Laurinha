@@ -38,8 +38,8 @@ df_pagamento = ler_planilha_por_id("Detalhe_centro_pagamento")
 df_recebimento = ler_planilha_por_id("Detalhe_centro_recebimento")
 
 # Adiciona a coluna tipo
-df_receber["tipo"] = "receber"
-df_pagar["tipo"] = "pagar"
+df_receber["tipo"] = "Receita"
+df_pagar["tipo"] = "Despesa"
 
 # Junta os dois dataframes
 df_completo = pd.concat([df_receber, df_pagar], ignore_index=True)

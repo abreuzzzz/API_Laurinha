@@ -68,7 +68,7 @@ hoje = pd.to_datetime(datetime.today().date())
 df_realizadas = df[df['lastAcquittanceDate'] <= hoje].copy()
 
 df_realizadas['valor_ajustado'] = df_realizadas.apply(
-    lambda row: abs(row['categoriesRatio.value']) if row['tipo'].lower() == 'Receita' else -abs(row['categoriesRatio.value']),
+    lambda row: abs(row['categoriesRatio.value']) if row['tipo'] == 'Receita' else -abs(row['categoriesRatio.value']),
     axis=1
 )
 

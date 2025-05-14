@@ -33,6 +33,8 @@ df['financialEvent.competenceDate'] = pd.to_datetime(df['financialEvent.competen
 # Criar colunas auxiliares
 df['AnoMes'] = df['financialEvent.competenceDate'].dt.to_period('M')
 df['Trimestre'] = df['financialEvent.competenceDate'].dt.to_period('Q')
+df['AnoMes_Caixa'] = df['lastAcquittanceDate'].dt.to_period('M')
+df['Trimestre_Caixa'] = df['lastAcquittanceDate'].dt.to_period('Q')
 
 # Resumo trimestral: valores pagos e pendentes por tipo
 resumo_trimestral = df.groupby(['Trimestre', 'tipo'])[['paid', 'unpaid']].sum().unstack(fill_value=0)
@@ -49,7 +51,12 @@ total_recebido = df[
 total_pago = df[
     (df['tipo'] == 'Despesa') & (df['status'] == 'ACQUITTED')
 ]['categoriesRatio.value'].sum()
-total_pendente = df['unpaid'].sum()
+total_pendente_despesa = df[
+    (df['tipo'] == 'Despesa') & (df['status'] == 'OVERDUE')
+]['categoriesRatio.value'].sum()
+total_pendente_receita = df[
+    (df['tipo'] == 'Receita') & (df['status'] == 'OVERDUE')
+]['categoriesRatio.value'].sum()
 saldo_liquido = total_recebido - total_pago
 top_categorias = df['categoriesRatio.category'].value_counts().head(3).to_dict()
 
@@ -57,15 +64,15 @@ top_categorias = df['categoriesRatio.category'].value_counts().head(3).to_dict()
 
 # Filtrar transações realizadas
 hoje = pd.to_datetime(datetime.today().date())
-df_realizadas = df[(df['financialEvent.competenceDate'] <= hoje) & (df['categoriesRatio.value'] > 0)].copy()
+df_realizadas = df[(df['lastAcquittanceDate'] <= hoje)
 
-# Ajustar valores: receitas positivas, despesas negativas
 df_realizadas['valor_ajustado'] = df_realizadas.apply(
-    lambda row: row['categoriesRatio.value'] if row['tipo'].lower() == 'Receita' else -row['categoriesRatio.value'], axis=1
+    lambda row: abs(row['categoriesRatio.value']) if row['tipo'].lower() == 'Receita' else -abs(row['categoriesRatio.value']),
+    axis=1
 )
 
 # Fluxo de Caixa
-fluxo_caixa = df_realizadas.groupby('AnoMes')['valor_ajustado'].sum().reset_index()
+fluxo_caixa = df_realizadas.groupby('AnoMes_Caixa')['valor_ajustado'].sum().reset_index()
 fluxo_caixa['saldo_acumulado'] = fluxo_caixa['valor_ajustado'].cumsum()
 
 # Receitas e despesas por mês
@@ -102,7 +109,8 @@ Você é um analista financeiro sênior. Recebi um extrato financeiro com as seg
 1. Visão geral:
 - Total recebido (entradas): R$ {total_recebido:,.2f}
 - Total pago (saídas): R$ {total_pago:,.2f}
-- Total pendente (a pagar ou a receber): R$ {total_pendente:,.2f}
+- Receita pendente (Receita): R$ {total_pendente_receita:,.2f}
+- Despesa pendente (Despesa): R$ {total_pendente_despesa:,.2f}
 - Saldo líquido (entradas - saídas): R$ {saldo_liquido:,.2f}
 
 2. Top 3 categorias mais frequentes: {top_categorias}

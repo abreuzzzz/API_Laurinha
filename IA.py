@@ -43,8 +43,12 @@ variacao_mensal_pct = resumo_mensal_categoria.pct_change().fillna(0)
 categorias_com_alta = (variacao_mensal_pct > 0.3).apply(lambda row: row[row > 0.3].to_dict(), axis=1).to_dict()
 
 # Valores totais
-total_recebido = df[df['tipo'] == 'Receita']['categoriesRatio.value'].sum()
-total_pago = df[df['tipo'] == 'Despesa']['categoriesRatio.value'].sum()
+total_recebido = df[
+    (df['tipo'] == 'Receita') & (df['status'] == 'ACQUITTED')
+]['categoriesRatio.value'].sum()
+total_pago = df[
+    (df['tipo'] == 'Despesa') & (df['status'] == 'ACQUITTED')
+]['categoriesRatio.value'].sum()
 total_pendente = df['unpaid'].sum()
 saldo_liquido = total_recebido - total_pago
 top_categorias = df['categoriesRatio.category'].value_counts().head(3).to_dict()
@@ -109,7 +113,7 @@ Você é um analista financeiro sênior. Recebi um extrato financeiro com as seg
 4. Categorias com aumentos mensais significativos (acima de 30% de um mês para o outro):
 {categorias_com_alta}
 
-5. Fluxo de caixa mensal:
+5. Fluxo de caixa mensal, me de também o mês a mês:
 {fluxo_caixa.to_string(index=False)}
 
 6. Rentabilidade mensal (lucro e margem de lucro):

@@ -57,11 +57,11 @@ top_categorias = df['categoriesRatio.category'].value_counts().head(3).to_dict()
 
 # Filtrar transações realizadas
 hoje = pd.to_datetime(datetime.today().date())
-df_realizadas = df[(df['financialEvent.competenceDate'] <= hoje) & (df['paid'] > 0)].copy()
+df_realizadas = df[(df['financialEvent.competenceDate'] <= hoje) & (df['categoriesRatio.value'] > 0)].copy()
 
 # Ajustar valores: receitas positivas, despesas negativas
 df_realizadas['valor_ajustado'] = df_realizadas.apply(
-    lambda row: row['paid'] if row['tipo'].lower() == 'Receita' else -row['paid'], axis=1
+    lambda row: row['categoriesRatio.value'] if row['tipo'].lower() == 'Receita' else -row['categoriesRatio.value'], axis=1
 )
 
 # Fluxo de Caixa
@@ -72,8 +72,8 @@ fluxo_caixa['saldo_acumulado'] = fluxo_caixa['valor_ajustado'].cumsum()
 df_receitas = df_realizadas[df_realizadas['tipo'].str.lower() == 'Receita']
 df_despesas = df_realizadas[df_realizadas['tipo'].str.lower() == 'Despesa']
 
-receitas_mensais = df_receitas.groupby('AnoMes')['paid'].sum().reset_index()
-despesas_mensais = df_despesas.groupby('AnoMes')['paid'].sum().reset_index()
+receitas_mensais = df_receitas.groupby('AnoMes')['categoriesRatio.value'].sum().reset_index()
+despesas_mensais = df_despesas.groupby('AnoMes')['categoriesRatio.value'].sum().reset_index()
 
 # Rentabilidade
 rentabilidade = pd.merge(
@@ -92,7 +92,7 @@ df_pendentes = df[(df['unpaid'] > 0) & (df['financialEvent.competenceDate'] <= h
 pendentes_por_tipo = df_pendentes.groupby('tipo')['unpaid'].sum().to_dict()
 
 # Inadimplência
-total_vencido = df_pendentes['unpaid'].sum()
+total_vencido = df_pendentes[df_pendentes['tipo'] == 'Receita']['unpaid'].sum()
 inadimplencia = total_vencido / total_recebido if total_recebido else 0
 
 # Prompt detalhado

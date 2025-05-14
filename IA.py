@@ -2,6 +2,9 @@ import pandas as pd
 from openai import OpenAI
 import os
 from datetime import datetime
+import gspread
+from gspread_dataframe import set_with_dataframe
+from oauth2client.service_account import ServiceAccountCredentials
 
 # Configurar sua API Key do OpenAI
 client = OpenAI(api_key="sk-0ac91b811ec149b48546f44fcf1ba9b5", base_url="https://api.deepseek.com")
@@ -9,6 +12,8 @@ client = OpenAI(api_key="sk-0ac91b811ec149b48546f44fcf1ba9b5", base_url="https:/
 # URL da planilha Google Sheets exportada como CSV
 sheet_id = "1jTuY_4wcegFjkt_e4dV2ZoM_7ZIUSlpZIGgZ-sNr7o4"
 sheet_csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
+
+SHEET_ID2 = "1jsZRht1ENIfamTMyZcQFm-V-HybkwpAxU8BRHav_zWs"  # ID da planilha de destino
 
 # Ler a planilha
 df = pd.read_csv(sheet_csv_url)
@@ -159,5 +164,36 @@ response = client.chat.completions.create(
 )
 
 # Mostrar insights
-print("=== INSIGHTS GERADOS ===")
-print(response.choices[0].message.content)
+#print("=== INSIGHTS GERADOS ===")
+#print(response.choices[0].message.content)
+
+# Credenciais do serviço
+json_secret = os.getenv("GDRIVE_SERVICE_ACCOUNT")
+creds_dict = json.loads(json_secret)
+creds = Credentials.from_service_account_info(creds_dict, scopes=["https://www.googleapis.com/auth/spreadsheets"])
+
+# Acessar a planilha
+gc = gspread.authorize(creds)
+spreadsheet = gc.open_by_key("1jsZRht1ENIfamTMyZcQFm-V-HybkwpAxU8BRHav_zWs")
+worksheet = spreadsheet.get_worksheet(0)  # primeira aba
+
+# Limpar todo o conteúdo anterior
+worksheet.clear()
+
+# Processar conteúdo da IA
+conteudo_ia = response.choices[0].message.content
+
+blocos = conteudo_ia.split("####")
+dados = []
+
+for bloco in blocos:
+    bloco = bloco.strip()
+    if not bloco:
+        continue
+    if bloco.startswith("**"):
+        titulo = bloco.split("**")[1]
+        resultado = bloco.split("**", 2)[-1].strip()
+        dados.append([titulo, resultado])
+
+# Escrever na planilha
+worksheet.update("A1", dados)

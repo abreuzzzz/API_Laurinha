@@ -84,7 +84,7 @@ rentabilidade = pd.merge(
     suffixes=('_receita', '_despesa')
 ).fillna(0)
 
-rentabilidade['lucro'] = rentabilidade['categoriesRatio.value_receita'] - rentabilidade['paid_despesa']
+rentabilidade['lucro'] = rentabilidade['categoriesRatio.value_receita'] - rentabilidade['categoriesRatio.value_despesa']
 rentabilidade['margem_lucro'] = rentabilidade['lucro'] / rentabilidade['categoriesRatio.value_receita'].replace(0, pd.NA)
 
 # Pendências e vencidos

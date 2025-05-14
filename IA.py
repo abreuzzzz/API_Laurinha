@@ -122,7 +122,7 @@ Você é um analista financeiro sênior. Recebi um extrato financeiro com as seg
 
 Considere que:
 - Transações com status "ACQUITTED" já foram quitadas.
-- O campo 'Tipo' indica se é uma entrada ("Recebimento") ou saída ("Pagamento").
+- O campo 'Tipo' indica se é uma entrada ("Receita") ou saída ("Despesa").
 - 'paid' são os valores já pagos ou recebidos.
 - 'unpaid' são valores ainda pendentes.
 

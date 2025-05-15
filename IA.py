@@ -140,6 +140,8 @@ Você é um analista financeiro sênior. Recebi um extrato financeiro com as seg
 
 8. Inadimplência (proporção de valores vencidos sobre receitas realizadas): {inadimplencia:.2%}
 
+9. faça um resumo executivo.
+
 Considere que:
 - Transações com status "ACQUITTED" já foram quitadas.
 - O campo 'tipo' indica se é uma entrada ("Receita") ou saída ("Despesa").

@@ -6,7 +6,7 @@ from langchain.agents.agent_types import AgentType
 from openai import OpenAI
 from datetime import datetime
 
-# Chave da API (OpenAI ou DeepSeek)
+# Chave da API (OpenAI ou DeepSeek)1
 deepseek_api_key = "sk-0ac91b811ec149b48546f44fcf1ba9b5"  # substitua pela sua chave da DeepSeek
 deepseek_base_url = "https://api.deepseek.com"  # URL base correta
 

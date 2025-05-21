@@ -20,7 +20,8 @@ headers = {
 }
 
 response = requests.post(url, headers=headers, data=payload)
-csv_text = response.content.decode('latin1')  # <-- Aqui é a mudança principal
+response.encoding = 'utf-8'  # Corrige caracteres especiais
+csv_text = response.text
 
 # 2. Autenticação com Google Sheets
 json_secret = os.getenv("GDRIVE_SERVICE_ACCOUNT")
@@ -43,7 +44,18 @@ worksheet.clear()
 reader = csv.reader(io.StringIO(csv_text), delimiter=';')
 rows = list(reader)
 
+# 4.1 Ajusta o cabeçalho para juntar as duas primeiras linhas
+new_header = []
+for col1, col2 in zip(rows[0], rows[1]):
+    if col2.strip():
+        new_header.append(f"{col1.strip()} {col2.strip()}")
+    else:
+        new_header.append(col1.strip())
+
+# 4.2 Junta o novo cabeçalho com os dados restantes
+new_rows = [new_header] + rows[2:]
+
 # 5. Escreve os dados na aba
-worksheet.update("A1", rows)
+worksheet.update("A1", new_rows)
 
 print("✅ Dados atualizados com sucesso na aba 'Página1'.")

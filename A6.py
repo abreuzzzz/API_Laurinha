@@ -20,8 +20,7 @@ headers = {
 }
 
 response = requests.post(url, headers=headers, data=payload)
-response.encoding = 'utf-8'  # Corrige caracteres especiais
-csv_text = response.text
+csv_text = response.content.decode('latin1')  # <-- Aqui é a mudança principal
 
 # 2. Autenticação com Google Sheets
 json_secret = os.getenv("GDRIVE_SERVICE_ACCOUNT")

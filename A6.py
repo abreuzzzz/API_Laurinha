@@ -42,55 +42,76 @@ worksheet.clear()
 reader = csv.reader(io.StringIO(csv_text), delimiter=';')
 rows = list(reader)
 
-# 4.1 Ajusta o cabeçalho para juntar as duas primeiras linhas
-new_header = []
-for col1, col2 in zip(rows[0], rows[1]):
+# 4.1 Cria o novo cabeçalho combinando as duas primeiras linhas
+header_1 = rows[0]
+header_2 = rows[1]
+combined_header = []
+for col1, col2 in zip(header_1, header_2):
     if col2.strip():
-        new_header.append(f"{col1.strip()} {col2.strip()}")
+        combined_header.append(f"{col1.strip()} {col2.strip()}")
     else:
-        new_header.append(col1.strip())
+        combined_header.append(col1.strip())
 
-# 4.2 Identifica os pares Previsto e Realizado por mês
-month_pairs = []
-for i, col in enumerate(new_header):
+# 4.2 Identifica os pares de colunas Previsto / Realizado e suas posições
+month_indices = []
+new_header = []
+i = 0
+while i < len(combined_header):
+    col = combined_header[i]
     if col.startswith("Previsto (R$)"):
         month = col.split("Previsto (R$)")[1].strip()
-        for j in range(i + 1, len(new_header)):
-            if new_header[j].startswith("Realizado (R$)") and new_header[j].endswith(month):
-                month_pairs.append((i, j, month))
-                break
+        if i + 1 < len(combined_header) and combined_header[i + 1].startswith("Realizado (R$)") and combined_header[i + 1].endswith(month):
+            new_header.append(combined_header[i])     # Previsto
+            new_header.append(combined_header[i + 1]) # Realizado
+            new_header.append(f"Diferença % {month}") # Nova coluna
+            month_indices.append((i, i + 1))           # Índices dos pares
+            i += 2
+            continue
+    new_header.append(col)
+    i += 1
 
-# 4.3 Adiciona colunas de Diferença % para os meses
-for _, _, month in month_pairs:
-    new_header.append(f"Diferença % {month}")
-
-# 4.4 Localiza os totais e adiciona coluna de Diferença % Total
+# 4.3 Localiza índice do Total e insere "Diferença % Total" logo após
 try:
     idx_prev_total = new_header.index("Previsto (R$) Total")
     idx_real_total = new_header.index("Realizado (R$) Total")
-    new_header.append("Diferença % Total")
+    insert_idx = idx_real_total + 1
+    new_header.insert(insert_idx, "Diferença % Total")
 except ValueError:
+    insert_idx = None
     idx_prev_total = idx_real_total = None
 
-# 4.5 Junta o cabeçalho e inicia nova lista de linhas
+# 4.4 Inicia nova matriz de dados com cabeçalho atualizado
 new_rows = [new_header]
 
-# 4.6 Processa os dados linha a linha
+# 4.5 Processa cada linha de dados
 for row in rows[2:]:
-    new_row = row.copy()
-
-    # Diferença % por mês
-    for idx_prev, idx_real, _ in month_pairs:
-        try:
-            previsto = float(row[idx_prev].replace('.', '').replace(',', '.'))
-            realizado = float(row[idx_real].replace('.', '').replace(',', '.'))
-            if previsto == 0:
-                diff_percent = ""
-            else:
-                diff_percent = f"{((realizado - previsto) / previsto) * 100:.2f}%"
-        except:
-            diff_percent = ""
-        new_row.append(diff_percent)
+    new_row = []
+    i = 0
+    while i < len(row):
+        inserted = False
+        for idx_prev, idx_real in month_indices:
+            if i == idx_prev:
+                # Lê valores
+                previsto = row[idx_prev].replace('.', '').replace(',', '.')
+                realizado = row[idx_real].replace('.', '').replace(',', '.')
+                try:
+                    previsto_val = float(previsto)
+                    realizado_val = float(realizado)
+                    if previsto_val == 0:
+                        diff_percent = ""
+                    else:
+                        diff_percent = f"{((realizado_val - previsto_val) / previsto_val) * 100:.2f}%"
+                except:
+                    diff_percent = ""
+                new_row.append(row[idx_prev])
+                new_row.append(row[idx_real])
+                new_row.append(diff_percent)
+                i += 2
+                inserted = True
+                break
+        if not inserted:
+            new_row.append(row[i])
+            i += 1
 
     # Diferença % Total
     if idx_prev_total is not None and idx_real_total is not None:
@@ -103,11 +124,11 @@ for row in rows[2:]:
                 diff_total = f"{((realizado_total - previsto_total) / previsto_total) * 100:.2f}%"
         except:
             diff_total = ""
-        new_row.append(diff_total)
+        new_row.insert(insert_idx, diff_total)
 
     new_rows.append(new_row)
 
 # 5. Escreve os dados na aba
 worksheet.update("A1", new_rows)
 
-print("✅ Dados atualizados com sucesso na aba 'Página1' com colunas de Diferença %.")
+print("✅ Dados atualizados com sucesso na aba 'Página1', com colunas de Diferença % inseridas ao lado de cada mês.")

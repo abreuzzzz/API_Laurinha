@@ -103,7 +103,7 @@ rentabilidade['lucro'] = rentabilidade['categoriesRatio.value_receita'] - rentab
 rentabilidade['margem_lucro'] = rentabilidade['lucro'] / rentabilidade['categoriesRatio.value_receita'].replace(0, pd.NA)
 
 # Pendências e vencidos
-df_pendentes = df[(df['unpaid'] > 0) & (df['financialEvent.competenceDate'] <= hoje)]
+df_pendentes = df[(df['unpaid'] > 0) & (df['lastAcquittanceDate'] <= hoje)]
 pendentes_por_tipo = df_pendentes.groupby('tipo')['unpaid'].sum().to_dict()
 
 # Inadimplência

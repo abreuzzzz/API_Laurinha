@@ -35,20 +35,27 @@ df['paid'] = limpar_valores(df['paid'])
 df['categoriesRatio.value'] = limpar_valores(df['categoriesRatio.value'])
 
 # Converter coluna de data
-df['financialEvent.competenceDate'] = pd.to_datetime(df['financialEvent.competenceDate'])
+df['lastAcquittanceDate'] = pd.to_datetime(df['lastAcquittanceDate'])
 df['lastAcquittanceDate'] = pd.to_datetime(df['lastAcquittanceDate'], errors='coerce')
+df['dueDate'] = pd.to_datetime(df['dueDate'], errors='coerce')
+
+# Filtrar apenas registros do ano corrente
+ano_corrente = datetime.today().year
+df = df[df['lastAcquittanceDate'].dt.year == ano_corrente]
+df = df[df['dueDate'].dt.year == ano_corrente]
+
 
 # Criar colunas auxiliares
-df['AnoMes'] = df['financialEvent.competenceDate'].dt.to_period('M')
-df['Trimestre'] = df['financialEvent.competenceDate'].dt.to_period('Q')
+df['AnoMes'] = df['lastAcquittanceDate'].dt.to_period('M')
+df['Trimestre'] = df['lastAcquittanceDate'].dt.to_period('Q')
 df['AnoMes_Caixa'] = df['lastAcquittanceDate'].dt.to_period('M')
 df['Trimestre_Caixa'] = df['lastAcquittanceDate'].dt.to_period('Q')
 
 # Resumo trimestral: valores pagos e pendentes por tipo
-resumo_trimestral = df.groupby(['Trimestre', 'tipo'])[['paid', 'unpaid']].sum().unstack(fill_value=0)
+resumo_trimestral = df.groupby(['Trimestre', 'tipo'])[['categoriesRatio.value', 'unpaid']].sum().unstack(fill_value=0)
 
 # Variação mensal por categoria
-resumo_mensal_categoria = df.groupby(['AnoMes', 'categoriesRatio.category'])['paid'].sum().unstack(fill_value=0)
+resumo_mensal_categoria = df.groupby(['AnoMes', 'categoriesRatio.category'])['categoriesRatio.value'].sum().unstack(fill_value=0)
 variacao_mensal_pct = resumo_mensal_categoria.pct_change().fillna(0)
 categorias_com_alta = (variacao_mensal_pct > 0.3).apply(lambda row: row[row > 0.3].to_dict(), axis=1).to_dict()
 
@@ -103,11 +110,11 @@ rentabilidade['lucro'] = rentabilidade['categoriesRatio.value_receita'] - rentab
 rentabilidade['margem_lucro'] = rentabilidade['lucro'] / rentabilidade['categoriesRatio.value_receita'].replace(0, pd.NA)
 
 # Pendências e vencidos
-df_pendentes = df[(df['unpaid'] > 0) & (df['lastAcquittanceDate'] <= hoje)]
+df_pendentes = df[(df['unpaid'] > 0) & (df['dueDate'] <= hoje) & (df['status'] == 'OVERDUE')]
 pendentes_por_tipo = df_pendentes.groupby('tipo')['unpaid'].sum().to_dict()
 
 # Inadimplência
-total_vencido = df_pendentes[df_pendentes['tipo'] == 'Receita']['unpaid'].sum()
+total_vencido = df_pendentes[df_pendentes['tipo'] == 'Receita']['categoriesRatio.value'].sum()
 inadimplencia = total_vencido / total_recebido if total_recebido else 0
 
 # Prompt detalhado
@@ -141,12 +148,6 @@ Você é um analista financeiro sênior. Recebi um extrato financeiro com as seg
 8. Inadimplência (proporção de valores vencidos sobre receitas realizadas): {inadimplencia:.2%}
 
 9. faça um resumo executivo.
-
-Considere que:
-- Transações com status "ACQUITTED" já foram quitadas.
-- O campo 'tipo' indica se é uma entrada ("Receita") ou saída ("Despesa").
-- 'paid' são os valores já pagos ou recebidos.
-- 'unpaid' são valores ainda pendentes.
 
 Por favor, me forneça:
 - Insights sobre a saúde financeira e tendências.

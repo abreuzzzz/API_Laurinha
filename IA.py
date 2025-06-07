@@ -167,7 +167,7 @@ Seja objetivo, claro e direto.
 
 # Chamar a IA
 response = client.chat.completions.create(
-    model="deepseek-chat",
+    model="deepseek-reasoner",
     messages=[
         {"role": "system", "content": "Você é um analista financeiro experiente."},
         {"role": "user", "content": prompt}

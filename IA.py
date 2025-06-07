@@ -81,6 +81,7 @@ total_pendente_receita = df[
 ]['categoriesRatio.value'].sum()
 saldo_liquido = total_recebido - total_pago
 top_categorias = df['categoriesRatio.category'].value_counts().head(3).to_dict()
+top_categorias_str = json.dumps(top_categorias, ensure_ascii=False)
 
 # ================= CÁLCULOS COMPLEMENTARES ===================
 

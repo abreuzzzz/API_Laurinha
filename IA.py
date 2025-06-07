@@ -126,43 +126,46 @@ inadimplencia = total_vencido / total_recebido if total_recebido else 0
 
 # Prompt detalhado
 prompt = f"""
-Você é um analista financeiro sênior. Recebi um extrato financeiro com as seguintes informações agregadas:
+Você é um analista financeiro sênior. Abaixo estão dados financeiros consolidados do ano corrente. 
 
-1. Visão geral:
-- Total recebido (entradas): R$ {total_recebido:,.2f}
-- Total pago (saídas): R$ {total_pago:,.2f}
-- Receita pendente (Receita): R$ {total_pendente_receita:,.2f}
-- Despesa pendente (Despesa): R$ {total_pendente_despesa:,.2f}
-- Saldo líquido (entradas - saídas): R$ {saldo_liquido:,.2f}
+### Visão Geral:
+- Total Recebido (Receita): R$ {total_recebido:,.2f}
+- Total Pago (Despesa): R$ {total_pago:,.2f}
+- Receita Pendente: R$ {total_pendente_receita:,.2f}
+- Despesa Pendente: R$ {total_pendente_despesa:,.2f}
+- Saldo Líquido: R$ {saldo_liquido:,.2f}
 
-2. Top 3 categorias mais frequentes: {top_categorias}
+### Categorias e Padrões:
+- Top 3 Categorias mais recorrentes: {json.dumps(top_categorias, ensure_ascii=False)}
+- Categorias com aumento mensal > 30%:
+{json.dumps(categorias_com_alta, indent=2, ensure_ascii=False)}
 
-3. Resumo trimestral (valores pagos e pendentes por tipo de transação):
+### Resumo Trimestral (Valores Pagos e Pendentes por Tipo):
 {resumo_trimestral.to_string()}
 
-4. Categorias com aumentos mensais significativos (acima de 30% de um mês para o outro):
-{categorias_com_alta}
-
-5. Fluxo de caixa mensal, me de também o mês a mês:
+### Fluxo de Caixa Mensal:
 {fluxo_caixa.to_string(index=False)}
 
-6. Rentabilidade mensal (lucro e margem de lucro):
+### Rentabilidade por Mês:
 {rentabilidade[['AnoMes', 'lucro', 'margem_lucro']].to_string(index=False)}
 
-7. Pendências vencidas por tipo:
-{pendentes_por_tipo}
+### Pendências Vencidas:
+- Por Tipo: {json.dumps(pendentes_por_tipo, ensure_ascii=False)}
+- Inadimplência: {inadimplencia:.2%}
 
-8. Inadimplência (proporção de valores vencidos sobre receitas realizadas): {inadimplencia:.2%}
+---
 
-9. faça um resumo executivo.
+## Instruções:
 
-Por favor, me forneça:
-- Insights sobre a saúde financeira e tendências.
-- Sinais de alerta (pendências, desequilíbrios).
-- Oportunidades de otimização (redução de custos ou melhoria na previsibilidade).
-- Recomendações práticas com base no histórico recente (por trimestre e por categoria).
+Com base nos dados fornecidos, forneça uma análise financeira executiva:
 
-Seja objetivo, claro e direto.
+1. **Resumo Executivo** – Destaque os principais pontos de forma clara e concisa.
+2. **Insights Financeiros** – Identifique tendências relevantes e alterações importantes ao longo do tempo (especialmente trimestrais e mensais).
+3. **Alertas e Riscos** – Chame atenção para inadimplência, concentração de categorias ou fluxos negativos persistentes.
+4. **Oportunidades de Otimização** – Sugira onde pode haver economia ou melhoria de previsibilidade financeira.
+5. **Recomendações Práticas** – Ofereça sugestões diretas com base nos dados por trimestre e categoria.
+
+Seja objetivo, técnico e evite generalizações. Use estrutura clara e marcadores, se necessário.
 """
 
 # Chamar a IA

@@ -126,7 +126,7 @@ inadimplencia = total_vencido / total_recebido if total_recebido else 0
 
 # Prompt detalhado
 prompt = f"""
-Você é um analista financeiro sênior. Abaixo estão dados financeiros consolidados do ano corrente. 
+Você é um analista financeiro sênior. Abaixo estão dados financeiros consolidados do ano corrente.
 
 ### Visão Geral:
 - Total Recebido (Receita): R$ {total_recebido:,.2f}
@@ -136,21 +136,21 @@ Você é um analista financeiro sênior. Abaixo estão dados financeiros consoli
 - Saldo Líquido: R$ {saldo_liquido:,.2f}
 
 ### Categorias e Padrões:
-- Top 3 Categorias mais recorrentes: {json.dumps(top_categorias, ensure_ascii=False)}
+- Top 3 Categorias mais recorrentes: {top_categorias_str}
 - Categorias com aumento mensal > 30%:
-{json.dumps(categorias_com_alta, indent=2, ensure_ascii=False)}
+{json.dumps(categorias_com_alta_str, indent=2, ensure_ascii=False)}
 
 ### Resumo Trimestral (Valores Pagos e Pendentes por Tipo):
 {resumo_trimestral.to_string()}
 
 ### Fluxo de Caixa Mensal:
-{fluxo_caixa.to_string(index=False)}
+{fluxo_caixa_str}
 
 ### Rentabilidade por Mês:
-{rentabilidade[['AnoMes', 'lucro', 'margem_lucro']].to_string(index=False)}
+{rentabilidade_str}
 
 ### Pendências Vencidas:
-- Por Tipo: {json.dumps(pendentes_por_tipo, ensure_ascii=False)}
+- Por Tipo: {pendentes_por_tipo_str}
 - Inadimplência: {inadimplencia:.2%}
 
 ---
@@ -159,13 +159,13 @@ Você é um analista financeiro sênior. Abaixo estão dados financeiros consoli
 
 Com base nos dados fornecidos, forneça uma análise financeira executiva:
 
-1. **Resumo Executivo** – Destaque os principais pontos de forma clara e concisa.
-2. **Insights Financeiros** – Identifique tendências relevantes e alterações importantes ao longo do tempo (especialmente trimestrais e mensais).
-3. **Alertas e Riscos** – Chame atenção para inadimplência, concentração de categorias ou fluxos negativos persistentes.
-4. **Oportunidades de Otimização** – Sugira onde pode haver economia ou melhoria de previsibilidade financeira.
-5. **Recomendações Práticas** – Ofereça sugestões diretas com base nos dados por trimestre e categoria.
+1. **Resumo Executivo**
+2. **Insights Financeiros**
+3. **Alertas e Riscos**
+4. **Oportunidades de Otimização**
+5. **Recomendações Práticas**
 
-Seja objetivo, técnico e evite generalizações. Use estrutura clara e marcadores, se necessário.
+Seja objetivo, técnico e use estrutura clara.
 """
 
 # Chamar a IA

@@ -1,6 +1,3 @@
-Você é um especialista em prompt e IA Tenho esse código e gostaria que você melhorasse a parte do prompt.
-
-
 import json
 import pandas as pd
 from openai import OpenAI

@@ -74,6 +74,13 @@ if 'id' in df_consolidado.columns:
 else:
     print(f"📋 Total de registros consolidados: {len(df_consolidado)}")
 
+# ===================== MAPEAR CONCILIATED PARA ACQUITTED =====================
+print(f"\n🔄 Mapeando status CONCILIATED para ACQUITTED...")
+mask_conciliated = df_consolidado['status'] == 'CONCILIATED'
+total_conciliated = mask_conciliated.sum()
+df_consolidado.loc[mask_conciliated, 'status'] = 'ACQUITTED'
+print(f"  ✅ {total_conciliated} registros CONCILIATED convertidos para ACQUITTED")
+
 # ===================== Criar coluna "Data do último pagamento" =====================
 print(f"\n🔄 Criando coluna 'Data do último pagamento' baseada em Situação e Data movimento...")
 
@@ -172,7 +179,7 @@ sheets_service.spreadsheets().values().update(
 print(f"\n✅ Planilha Google '{sheet_name}' atualizada com sucesso!")
 print(f"📊 Total de registros: {len(df_consolidado)}")
 print(f"📊 Registros por status (após ajustes):")
-for status in status_list + ['OVERDUE']:
+for status in ['ACQUITTED', 'PARTIAL', 'PENDING', 'LOST', 'RENEGOTIATED', 'OVERDUE']:
     count = len(df_consolidado[df_consolidado['status'] == status])
     if count > 0:
         print(f"  - {status}: {count} registros")

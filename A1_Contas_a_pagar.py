@@ -40,7 +40,7 @@ for status_atual in status_list:
         "quickFilter": "ALL",
         "search": "",
         "status": [status_atual],
-        "type": "EXPENSE"
+        "type": ["EXPENSE"]
     })
 
     try:

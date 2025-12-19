@@ -35,8 +35,8 @@ for status_atual in status_list:
     print(f"\n📥 Baixando dados para status: {status_atual}")
 
     payload = json.dumps({
-        "dueDateFrom": None,
-        "dueDateTo": None,
+        "dateFrom": None,
+        "dateTo": None,
         "quickFilter": "ALL",
         "search": "",
         "status": [status_atual],

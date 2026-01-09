@@ -20,37 +20,50 @@ planilhas_ids = {
     "Financeiro_Completo_Laurinha": "1jTuY_4wcegFjkt_e4dV2ZoM_7ZIUSlpZIGgZ-sNr7o4"
 }
 
+def limpar_aba_completa(aba, nome_aba):
+    """Limpa conteúdo E formatação de uma aba"""
+    print(f"  🗑️ Limpando conteúdo de {nome_aba}...")
+    aba.clear()
+    
+    print(f"  🎨 Removendo formatação de {nome_aba}...")
+    aba.format('A:ZZ', {
+        "numberFormat": {"type": "TEXT"},  # Força formato texto
+        "backgroundColor": {"red": 1, "green": 1, "blue": 1},  # Branco
+        "textFormat": {
+            "bold": False,
+            "italic": False,
+            "foregroundColor": {"red": 0, "green": 0, "blue": 0}
+        }
+    })
+    print(f"  ✅ {nome_aba} - Conteúdo e formatação removidos")
+
 print("🗑️ Iniciando exclusão COMPLETA de todas as linhas das planilhas...")
 
 # 1. Limpa TUDO de Contas a Receber
 print("\n📋 Limpando: Financeiro_contas_a_receber_Laurinha")
 planilha_receber = client.open_by_key(planilhas_ids["Financeiro_contas_a_receber_Laurinha"])
 aba_receber = planilha_receber.sheet1
-aba_receber.clear()
-print("  ✅ Todas as linhas excluídas (incluindo cabeçalho)")
+limpar_aba_completa(aba_receber, "Contas a Receber")
 
 # 2. Limpa TUDO de Contas a Pagar
 print("\n📋 Limpando: Financeiro_contas_a_pagar_Laurinha")
 planilha_pagar = client.open_by_key(planilhas_ids["Financeiro_contas_a_pagar_Laurinha"])
 aba_pagar = planilha_pagar.sheet1
-aba_pagar.clear()
-print("  ✅ Todas as linhas excluídas (incluindo cabeçalho)")
+limpar_aba_completa(aba_pagar, "Contas a Pagar")
 
 # 3. Limpa TUDO de Financeiro Completo - Aba principal (sheet1)
 print("\n📋 Limpando: Financeiro_Completo_Laurinha (sheet1)")
 planilha_completo = client.open_by_key(planilhas_ids["Financeiro_Completo_Laurinha"])
 aba_completo = planilha_completo.sheet1
-aba_completo.clear()
-print("  ✅ Todas as linhas excluídas (incluindo cabeçalho)")
+limpar_aba_completa(aba_completo, "Financeiro Completo - Principal")
 
 # 4. Limpa TUDO de Financeiro Completo - Aba Dados_Pivotados (se existir)
 print("\n📋 Limpando: Financeiro_Completo_Laurinha (Dados_Pivotados)")
 try:
     aba_pivotada = planilha_completo.worksheet("Dados_Pivotados")
-    aba_pivotada.clear()
-    print("  ✅ Todas as linhas excluídas (incluindo cabeçalho)")
+    limpar_aba_completa(aba_pivotada, "Dados Pivotados")
 except:
     print("  ⚠️ Aba 'Dados_Pivotados' não encontrada")
 
 print("\n🎉 Limpeza completa concluída com sucesso!")
-print("⚠️ ATENÇÃO: Todas as linhas foram removidas, incluindo os cabeçalhos")
+print("⚠️ ATENÇÃO: Conteúdo e formatação removidos. Células resetadas para formato TEXTO")
